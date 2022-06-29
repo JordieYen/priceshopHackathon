@@ -21,10 +21,10 @@ def main():
 			header = next(csvreader)
 			for row in csvreader:
 				rows.append(row)
-		for row in rows:
+		# for row in rows:
 			# print(row[0])
-			# url = 'https://www.lazada.com.my/products/apple-ipad-102-inch-9th-gen-wi-fi-i2477575777-s10832263173.html'
-			url = row[0]
+			url = 'https://www.lazada.com.my/products/apple-ipad-102-inch-9th-gen-wi-fi-i2477575777-s10832263173.html'
+			# url = row[0]
 			response = requests.get(url)
 			# print(response.text)
 			d = json.loads(re.search(r'var __moduleData__ = ({.*})', response.text).group(1))
@@ -34,7 +34,10 @@ def main():
 			productProperties = skuBase['properties']
 			skus = skuBase['skus']
 
-			for skuId in skuInfos.keys():
+			for skuId in skuInfos:
+				pdt_name = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_name']
+				pdt_price = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_price']
+				print(skuId, ': ', pdt_name, pdt_price)
 				sku = findCallback(skus, lambda x: x['cartSkuId'] == skuId)
 				propPath = sku['propPath']
 				properties = propPath.split(";")
@@ -44,11 +47,14 @@ def main():
 				for property in productProperties:
 					for spec in specs:
 						magic = findCallback(property['values'], lambda x: x['vid'] == spec)
-						# if magic:
-							# print(magic['name'])
-			print("1")
-				# print(skuInfos[skuId]['price']['salePrice']['text'], '\n')
+						if magic:
+							print(magic['name'])
+				print(skuInfos[skuId]['price']['salePrice']['text'], '\n')
 			# print('\n\n\n=============================\n\n\n')
+
+
+
+
 			# for item in skuInfos:
 			# 	for stuff in d['data']['root']['fields']['skuInfos'][item]:
 			# 		print(stuff)
