@@ -37,19 +37,22 @@ def main():
 			for skuId in skuInfos:
 				pdt_name = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_name']
 				pdt_price = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_price']
-				print(skuId, ': ', pdt_name, pdt_price)
+				# print(skuId, ': ', pdt_name, pdt_price, '\n')
 				sku = findCallback(skus, lambda x: x['cartSkuId'] == skuId)
 				propPath = sku['propPath']
 				properties = propPath.split(";")
 				specs = []
 				for prop in properties:
 					specs.append(prop.split(":")[1])
+				a = ""
 				for property in productProperties:
 					for spec in specs:
 						magic = findCallback(property['values'], lambda x: x['vid'] == spec)
 						if magic:
-							print(magic['name'])
-				print(skuInfos[skuId]['price']['salePrice']['text'], '\n')
+							a = a + magic['name'] + " "
+				print(pdt_name, '|' , pdt_price, '|' , a, '\n')
+
+				# print(skuInfos[skuId]['price']['salePrice']['text'], '\n')
 			# print('\n\n\n=============================\n\n\n')
 
 
