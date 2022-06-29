@@ -21,23 +21,22 @@ def main():
 			header = next(csvreader)
 			for row in csvreader:
 				rows.append(row)
-		# for row in rows:
-			# print(row[0])
-			url = 'https://www.lazada.com.my/products/apple-ipad-102-inch-9th-gen-wi-fi-i2477575777-s10832263173.html'
-			# url = row[0]
+		for row in rows:
+			print(row[0], '\n')
+			url = row[0]
+			# url = 'https://www.lazada.com.my/products/apple-ipad-102-inch-9th-gen-wi-fi-i2477575777-s10832263173.html'
 			response = requests.get(url)
-			# print(response.text)
 			d = json.loads(re.search(r'var __moduleData__ = ({.*})', response.text).group(1))
 			del d['data']['root']['fields']['skuInfos']['0']
 			skuInfos = d['data']['root']['fields']['skuInfos']
 			skuBase = d['data']['root']['fields']['productOption']['skuBase']
 			productProperties = skuBase['properties']
 			skus = skuBase['skus']
-
 			for skuId in skuInfos:
 				pdt_name = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_name']
 				pdt_price = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_price']
-				# print(skuId, ': ', pdt_name, pdt_price, '\n')
+				pdt_category = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_category'][-1]
+				pdt_stock = d['data']['root']['fields']['skuInfos'][skuId]['stock']
 				sku = findCallback(skus, lambda x: x['cartSkuId'] == skuId)
 				propPath = sku['propPath']
 				properties = propPath.split(";")
@@ -50,28 +49,10 @@ def main():
 						magic = findCallback(property['values'], lambda x: x['vid'] == spec)
 						if magic:
 							a = a + magic['name'] + " "
-				print(pdt_name, '|' , pdt_price, '|' , a, '\n')
-
-				# print(skuInfos[skuId]['price']['salePrice']['text'], '\n')
-			# print('\n\n\n=============================\n\n\n')
-
-
-
-
-			# for item in skuInfos:
-			# 	for stuff in d['data']['root']['fields']['skuInfos'][item]:
-			# 		print(stuff)
-					# if stuff == 'price':
-					# 	print(json.dumps(d['data']['root']['fields']['skuInfos'][item][stuff], indent = 4))
-					# if stuff == 'quantity':
-					# 	print(json.dumps(d['data']['root']['fields']['skuInfos'][item][stuff], indent = 4))
-					# if stuff == 'dataLayer':
-					# 	print(json.dumps(d['data']['root']['fields']['skuInfos'][item][stuff], indent = 4))
-
-			# print(json.dumps(skuInfos, indent = 4))
-			# print(json.dumps(d['data']['root']['fields']['skuInfos'][temp], indent = 4))
+				print(pdt_name, '|', a, '| stock:', pdt_stock, '| ', pdt_price, '| category:', pdt_category, '\n')
+			print('\n\n\n=============================\n\n\n')
 	else:
-		print("ERROR : input file name")
+		print("ERROR : input 1 file name")
 
 if __name__ == '__main__':
     main()
