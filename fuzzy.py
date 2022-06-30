@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from unittest import skip
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 import csv
@@ -7,69 +8,65 @@ import json
 import re
 import requests
 
-def remove_consec_dash(s):
-    new_s = ""
-    prev = ""
-    for c in s:
-        if c == prev and c == '-':
-            continue
-        else:
-            new_s += c
-            prev = c
-    return new_s
+# args = sys.argv[1:]
+# args1 = sys.argv[2:]
 
-args = sys.argv[1:]
-query = 'iPad 10.2-inch 9th Gen Wi-Fi + Cellular (2021)'
-if len(args) == 1:
-	rows = []
-	
-	with open (args[0], 'r') as file :
-		csvreader = csv.reader(file)
-		header = next(csvreader)
+brand = ["honor", "huawei", "infinix", "nokia", "oppo", "realme", "samsung", "vivo", "xiaomi", "apple"]
 
-		for row in csvreader:
-			rows.append(row)
 
-		column = []
+def fuzzysussy(pdt_name, data_for_matching ):
+
+		rows = data_for_matching
+		
+		topsearch = []
+		toptopsearch = []
+		filter3 = []
+		highest = 0; 
+		splitquery = (str.split((pdt_name).lower().replace("("," ").replace(")"," ").replace("/"," ").replace("[", " ").replace("]", " ").replace("-"," ").replace(".","-"),' '))
+
 		for row in rows:
-			res = row[1]
-			splitres = res.split(",")
-			column.append(splitres)
+			for word in splitquery:
+				if splitquery[0] in (row[2].lower()):
+					topsearch.append(row)
+					break
+		
+		for row in topsearch:
+			for word in splitquery:
+				if splitquery[1] in row[2].lower():
+					toptopsearch.append(row)
+					break
 
-		items = []
-		for item in column:
-			items.append(item[0])
+		if (len(toptopsearch)) == 0:
+			return (False)
 
-		splitquery = query.split(" ")
-		i = 0
-		for q in splitquery:
+		if (len(toptopsearch) > 3):	
+			for row in toptopsearch:
+				for word in splitquery:
+					if splitquery[2] in row[2].lower():
+						filter3.append(row)
+						break
+		if (len(filter3) == 0):
+			topsearch = toptopsearch;
+		elif (len(filter3) >= 0):
+			topsearch = filter3;
 
-			highest = 0
-			for row in rows:
-				res = row[1]
-				splitres = res.split(",")
-				score = fuzz.partial_ratio(splitres[0].lower().replace(" ", ""), q.lower().replace(" ", ""))
+		# Fuzzy Partial ratio through Product Key
+		for row in topsearch:
+			score = fuzz.partial_ratio(pdt_name, row[2])
+			if (score > highest):
+				highest = score
+				highestrow = row
+
+		# Low Score will run Fuzzy Partial ratio through product name
+		if (score < 25):
+			for row in topsearch:
+				score = fuzz.partial_ratio(pdt_name, row[1])
 				if (score > highest):
 					highest = score
+					highestrow = row
 
-			higharray = []
-			for row in rows:
-				res = row[1]
-				splitres = res.split(",")
-				score = fuzz.partial_ratio(splitres[0].lower().replace(" ", ""), q.lower().replace(" ", ""))
-				if (score > highest - 20):
-					higharray.append(row)
-
-			rows = higharray
-
-		for item in rows:
-			print(item)
-
-		str = 'HUAWEI MateBook D15 (2021), 15.6"",  i5-1135G7, 8GB/512GB (Intel Iris XE)'
-		str2 = 'huawei-matebook-d15-2021-156-i5-1135g7-8gb512gb-intel-iris-xe'
-		str = str.replace(' ', "zzz").replace('-', "zzz")
-		str = re.sub('[\W\ ]+', '', str)
-		str = str.replace('zzz', "-").lower()
-		str = remove_consec_dash(str)
-		# print(str)
-		# print(str2)
+		# Output
+		array = []
+		array.append(highestrow[1])
+		array.append(highestrow[2])
+		return(array)

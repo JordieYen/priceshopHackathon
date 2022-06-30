@@ -7,6 +7,7 @@ import requests
 from time import sleep
 from selenium import webdriver
 from random import random, randint
+from fuzzy import *
 
 def findCallback(list, filter):
     for x in list:
@@ -17,17 +18,24 @@ def findCallback(list, filter):
 def main():
 	args = sys.argv[1:]
 
-	if len(args) == 1:
-		rows = []
+	if len(args) > 1:
+		links = []
 		with open(args[0], 'r') as file:
 			csvreader = csv.reader(file)
 			header = next(csvreader)
 			for row in csvreader:
-				rows.append(row)
+				links.append(row)
 
+		data = []
+		with open(args[1], 'r') as file:
+			csvreader = csv.reader(file)
+			header = next(csvreader)
+			for row in csvreader:
+				data.append(row)
+		
 		count = 0
-		print("link,Product Name,Variant,Stock Availability,Pricing,Category")
-		for row in rows:
+		print("link,Product Name,Variant,Stock Availability,Pricing,PSmodelName,PSproductKey,Category")
+		for row in links:
 			url = row[0]
 
 			count += 1
@@ -52,7 +60,13 @@ def main():
 				pdt_category = d['data']['root']['fields']['skuInfos'][skuId]['dataLayer']['pdt_category'][-1]
 				pdt_stock = d['data']['root']['fields']['skuInfos'][skuId]['stock']
 				sku = findCallback(skus, lambda x: x['cartSkuId'] == skuId)
-				
+				array = fuzzysussy(pdt_name, data)
+				if (array is not False):
+					PSmodelName = array[0]
+					PSproductKey = array[1]
+				else:
+					PSmodelName = "Not found"
+					PSproductKey = "Not found"
 				a = ""
 				if 'propPath' in sku:
 					propPath = sku['propPath']
@@ -68,7 +82,7 @@ def main():
 							if magic:
 								a = a + magic['name'] + " "
 
-				print(url + ',' + pdt_name.replace(",", '') + ',' + a + ',' + str(pdt_stock) + ',' + pdt_price.replace(",", '') + ',' + pdt_category)
+				print(url + ',' + pdt_name.replace(",", '') + ',' + a + ',' + str(pdt_stock) + ',' + pdt_price.replace(",", '') + "," + PSmodelName.replace(",", '') + "," + PSproductKey + ',' + pdt_category)
 			# print('\n\n\n=============================\n\n\n')
 	else:
 		print("ERROR : input 1 file name")
