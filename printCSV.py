@@ -24,7 +24,6 @@ def main():
 		for row in rows:
 			print(row[0], '\n')
 			url = row[0]
-			# url = 'https://www.lazada.com.my/products/apple-ipad-102-inch-9th-gen-wi-fi-i2477575777-s10832263173.html'
 			response = requests.get(url)
 			d = json.loads(re.search(r'var __moduleData__ = ({.*})', response.text).group(1))
 			del d['data']['root']['fields']['skuInfos']['0']
